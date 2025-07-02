@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Câu hỏi chung -->
+        <TextView
+            android:id="@+id/questionText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Câu hỏi"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Layout dạng điền từ -->
+        <LinearLayout
+            android:id="@+id/fillInLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/answerInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nhập từ tiếng Anh" />
+        </LinearLayout>
+
+        <!-- Layout dạng trắc nghiệm -->
+        <LinearLayout
+            android:id="@+id/multipleChoiceLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="16dp">
+
+            <RadioGroup
+                android:id="@+id/choicesGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <!-- Layout dạng phát âm -->
+        <LinearLayout
+            android:id="@+id/pronunciationLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal">
+
+            <Button
+                android:id="@+id/listenButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nghe" />
+
+            <Button
+                android:id="@+id/speakButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Phát âm" />
+        </LinearLayout>
+
+        <!-- Nút OK để kiểm tra -->
+        <Button
+            android:id="@+id/okButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="OK"
+            android:backgroundTint="#22537C"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+</ScrollView>
