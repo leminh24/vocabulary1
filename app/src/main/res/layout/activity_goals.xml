@@ -101,7 +101,6 @@
                 android:inputType="text"
                 android:textSize="15dp"
                 />
-
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
