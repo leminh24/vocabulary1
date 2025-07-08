@@ -6,13 +6,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.vocabulary.CourseAdapter;
-import com.example.vocabulary.DatabaseHelper;
-import com.example.vocabulary.Course;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,7 +30,6 @@ public class MainActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setVisibility(View.GONE); // ẩn vì không cần ở MainActivity
 
-
         DatabaseHelper helper = new DatabaseHelper(this);
         db = helper.getReadableDatabase();
 
@@ -43,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
             int wordCount = cursor.getInt(2);
             int progress = cursor.getInt(3);
 
-            // Gán ảnh theo tên
             int imageResId = R.drawable.toefl;
             if (name.equalsIgnoreCase("Beginner")) {
                 imageResId = R.drawable.toefl;
@@ -55,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         }
         cursor.close();
 
-
         adapter = new CourseAdapter(courseList, courseId -> {
             Intent intent = new Intent(MainActivity.this, TopicActivity.class);
             intent.putExtra("course_id", courseId);
@@ -64,5 +60,11 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView.setAdapter(adapter);
 
+        // Xử lý khi bấm vào "Cài đặt"
+        LinearLayout settingLayout = findViewById(R.id.settingLayout);
+        settingLayout.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ItemSettingActivity.class);
+            startActivity(intent);
+        });
     }
 }
