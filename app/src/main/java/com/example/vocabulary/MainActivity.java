@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -76,6 +77,14 @@ public class MainActivity extends AppCompatActivity {
 //            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
 //            startActivity(intent);
 //        });
+        LinearLayout settingLayout = findViewById(R.id.menuSettings); // ID bạn sẽ đặt trong XML
+        settingLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ItemSettingActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 }
