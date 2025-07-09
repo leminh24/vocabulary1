@@ -19,6 +19,8 @@
         <activity android:name=".Reminder"/>
         <activity android:name=".Goals"/>
         <receiver android:name=".AlarmReceiver" />
+        <activity android:name=".PracticeActivity"/>
+        <activity android:name=".StatisticsActivity"/>
         <activity
             android:name=".MainActivity"
             android:exported="true">

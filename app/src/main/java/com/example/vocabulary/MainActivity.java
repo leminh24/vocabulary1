@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -30,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setVisibility(View.GONE); // ẩn vì không cần ở MainActivity
 
+
         DatabaseHelper helper = new DatabaseHelper(this);
         db = helper.getReadableDatabase();
 
@@ -41,16 +41,17 @@ public class MainActivity extends AppCompatActivity {
             int wordCount = cursor.getInt(2);
             int progress = cursor.getInt(3);
 
+            // Gán ảnh theo tên
             int imageResId = R.drawable.toefl;
             if (name.equalsIgnoreCase("Beginner")) {
                 imageResId = R.drawable.toefl;
             } else if (name.equalsIgnoreCase("Intermediate")) {
                 imageResId = R.drawable.ielts;
             }
-
             courseList.add(new Course(id, name, wordCount, progress, imageResId));
         }
         cursor.close();
+
 
         adapter = new CourseAdapter(courseList, courseId -> {
             Intent intent = new Intent(MainActivity.this, TopicActivity.class);
@@ -60,11 +61,21 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView.setAdapter(adapter);
 
-        // Xử lý khi bấm vào "Cài đặt"
-        LinearLayout settingLayout = findViewById(R.id.settingLayout);
-        settingLayout.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ItemSettingActivity.class);
+        // Gán sự kiện cho 3 nút menu
+        findViewById(R.id.menuStatistics).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, StatisticsActivity.class);
             startActivity(intent);
         });
+
+        findViewById(R.id.menuStudy).setOnClickListener(v -> {
+            // Ví dụ: quay lại MainActivity hoặc trang danh sách khóa học
+            recyclerView.scrollToPosition(0); // Hoặc load lại danh sách
+        });
+
+//        findViewById(R.id.menuSettings).setOnClickListener(v -> {
+//            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+//            startActivity(intent);
+//        });
+
     }
 }
