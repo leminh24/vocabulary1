@@ -7,8 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.vocabulary.R;
-import com.example.vocabulary.Vocabulary;
+
 import java.util.List;
 
 public class VocabularyAdapter extends RecyclerView.Adapter<VocabularyAdapter.VocabViewHolder> {
@@ -29,9 +28,19 @@ public class VocabularyAdapter extends RecyclerView.Adapter<VocabularyAdapter.Vo
     public void onBindViewHolder(@NonNull VocabViewHolder holder, int position) {
         Vocabulary vocab = vocabList.get(position);
         holder.word.setText(vocab.word);
-        holder.definition.setText(vocab.definition);
+        holder.definition.setText(vocab.meaning_vi);
         holder.example.setText(vocab.example);
+
+        // Đặt trạng thái ✓ hoặc ✗
+        if (vocab.status == 1) {
+            holder.status.setText("✓");
+            holder.status.setTextColor(0xFF2E7D32); // xanh lá
+        } else {
+            holder.status.setText("✗");
+            holder.status.setTextColor(0xFFD32F2F); // đỏ
+        }
     }
+
 
     @Override
     public int getItemCount() {
@@ -39,13 +48,14 @@ public class VocabularyAdapter extends RecyclerView.Adapter<VocabularyAdapter.Vo
     }
 
     static class VocabViewHolder extends RecyclerView.ViewHolder {
-        TextView word, definition, example;
+        TextView word, definition, example, status;
 
         public VocabViewHolder(@NonNull View itemView) {
             super(itemView);
             word = itemView.findViewById(R.id.txtWord);
             definition = itemView.findViewById(R.id.txtDefinition);
             example = itemView.findViewById(R.id.txtExample);
+            status = itemView.findViewById(R.id.txtStatus);
         }
     }
 }

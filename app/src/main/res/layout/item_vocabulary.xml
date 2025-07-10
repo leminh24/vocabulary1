@@ -29,4 +29,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp" />
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✓"
+        android:textSize="20sp"
+        android:layout_gravity="end"
+        android:paddingEnd="8dp"
+        android:textColor="@android:color/holo_green_dark" />
+
 </LinearLayout>

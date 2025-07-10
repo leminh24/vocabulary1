@@ -6,13 +6,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.vocabulary.CourseAdapter;
-import com.example.vocabulary.DatabaseHelper;
-import com.example.vocabulary.Course;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
             } else if (name.equalsIgnoreCase("Intermediate")) {
                 imageResId = R.drawable.ielts;
             }
-
             courseList.add(new Course(id, name, wordCount, progress, imageResId));
         }
         cursor.close();
@@ -63,6 +61,30 @@ public class MainActivity extends AppCompatActivity {
         });
 
         recyclerView.setAdapter(adapter);
+
+        // Gán sự kiện cho 3 nút menu
+        findViewById(R.id.menuStatistics).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, StatisticsActivity.class);
+            startActivity(intent);
+        });
+
+        findViewById(R.id.menuStudy).setOnClickListener(v -> {
+            // Ví dụ: quay lại MainActivity hoặc trang danh sách khóa học
+            recyclerView.scrollToPosition(0); // Hoặc load lại danh sách
+        });
+
+//        findViewById(R.id.menuSettings).setOnClickListener(v -> {
+//            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+//            startActivity(intent);
+//        });
+        LinearLayout settingLayout = findViewById(R.id.menuSettings); // ID bạn sẽ đặt trong XML
+        settingLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ItemSettingActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 }
