@@ -37,12 +37,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "sound TEXT, " +
                 "status INTEGER DEFAULT 0)");
 
-        // Thêm khóa học TOEIC
+        String[] courseNames = {"TOEIC","TOEFL", "SAT", "IELTS", "Business English", "Basic English"};
+        int courseId = 1;
+
         ContentValues course = new ContentValues();
-        course.put("name", "TOEIC");
-        course.put("word_count", 0);
-        course.put("progress", 0);
-        db.insert("Course", null, course);
+        for (String courseName : courseNames) {
+            course.clear();
+            course.put("name", courseName);
+            course.put("word_count", 0);
+            course.put("progress", 0);
+            db.insert("Course", null, course);
+
+            courseId++;
+        }
 
         // Thêm 10 chủ đề TOEIC
         String[] topics = {

@@ -28,7 +28,7 @@ public class VocabularyAdapter extends RecyclerView.Adapter<VocabularyAdapter.Vo
     public void onBindViewHolder(@NonNull VocabViewHolder holder, int position) {
         Vocabulary vocab = vocabList.get(position);
         holder.word.setText(vocab.word);
-        holder.definition.setText(vocab.definition);
+        holder.definition.setText(vocab.meaning_vi);
         holder.example.setText(vocab.example);
 
         // Đặt trạng thái ✓ hoặc ✗
