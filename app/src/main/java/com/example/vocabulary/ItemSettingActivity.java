@@ -5,25 +5,41 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.Locale;
+
 public class ItemSettingActivity extends AppCompatActivity {
 
-    AudioManager audioManager;
-    int originalVolume = -1; // Lưu âm lượng trước khi mute
+    private AudioManager audioManager;
+    private TextToSpeech tts;
+
+    private static final String PREFS_NAME = "settings_prefs";
+    private static final String KEY_TTS_SLOW = "tts_slow";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.item_setting);
 
-        // Khởi tạo AudioManager
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+        // Khởi tạo TextToSpeech
+        tts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                tts.setLanguage(Locale.US);
+
+                // Khôi phục tốc độ nói khi TTS đã sẵn sàng
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                boolean isSlow = prefs.getBoolean(KEY_TTS_SLOW, false);
+                tts.setSpeechRate(isSlow ? 0.5f : 1.0f);
+            }
+        });
 
         // Mua gói
         Button btnPurchase = findViewById(R.id.btnPurchase);
@@ -40,23 +56,29 @@ public class ItemSettingActivity extends AppCompatActivity {
         Button btnRestore = findViewById(R.id.btnRestore);
         btnRestore.setOnClickListener(v -> {
             Intent intent = new Intent(ItemSettingActivity.this, Packages.class);
-            intent.putExtra("restore", true); // Truyền cờ để báo là yêu cầu restore
+            intent.putExtra("restore", true);
             startActivity(intent);
         });
-        // Switch điều khiển âm lượng
+
+        // Switch điều khiển tốc độ nói
         Switch switchVolume = findViewById(R.id.switch1);
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean isSlow = prefs.getBoolean(KEY_TTS_SLOW, false);
+        switchVolume.setChecked(isSlow);
+
         switchVolume.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                // Hiện thanh điều chỉnh âm lượng
-                audioManager.adjustVolume(AudioManager.ADJUST_SAME, AudioManager.FLAG_SHOW_UI);
-            } else {
-                // Lưu âm lượng hiện tại nếu chưa lưu
-                if (originalVolume == -1) {
-                    originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+            SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+            editor.putBoolean(KEY_TTS_SLOW, isChecked);
+            editor.apply();
+
+            if (tts != null) {
+                if (isChecked) {
+                    tts.setSpeechRate(0.5f);
+                    Toast.makeText(this, "Đã bật chế độ phát âm chậm", Toast.LENGTH_SHORT).show();
+                } else {
+                    tts.setSpeechRate(1.0f);
+                    Toast.makeText(this, "Đã tắt chế độ phát âm chậm", Toast.LENGTH_SHORT).show();
                 }
-                // Mute bằng cách đặt âm lượng = 0
-                audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, 0);
-                Toast.makeText(this, "Đã tắt âm thanh chuông", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -81,5 +103,14 @@ public class ItemSettingActivity extends AppCompatActivity {
                 Toast.makeText(this, "Màn hình Goals chưa được tạo", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        super.onDestroy();
     }
 }

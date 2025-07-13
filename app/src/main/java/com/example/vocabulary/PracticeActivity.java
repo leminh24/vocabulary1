@@ -1,6 +1,7 @@
 package com.example.vocabulary;
 
 import android.content.ContentValues;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -36,6 +37,9 @@ public class PracticeActivity extends AppCompatActivity {
     private TextToSpeech tts;
     private int topicId = -1;
 
+    private static final String PREFS_NAME = "settings_prefs";
+    private static final String KEY_TTS_SLOW = "tts_slow";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,10 +60,15 @@ public class PracticeActivity extends AppCompatActivity {
         // Nhận topic_id từ Intent
         topicId = getIntent().getIntExtra("topic_id", -1);
 
-        // Khởi tạo TTS
+        // Khởi tạo TextToSpeech
         tts = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
                 tts.setLanguage(Locale.US);
+
+                // Lấy trạng thái switch từ SharedPreferences
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                boolean isSlow = prefs.getBoolean(KEY_TTS_SLOW, false);
+                tts.setSpeechRate(isSlow ? 0.5f : 1.0f);
             }
         });
 
@@ -71,9 +80,18 @@ public class PracticeActivity extends AppCompatActivity {
         showNextQuestion();
 
         okButton.setOnClickListener(v -> checkAnswer());
+
         listenButton.setOnClickListener(v -> {
-            if (currentWord != null) tts.speak(currentWord.word, TextToSpeech.QUEUE_FLUSH, null, null);
+            if (currentWord != null) {
+                // Kiểm tra lại trạng thái switch mỗi lần nói
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                boolean isSlow = prefs.getBoolean(KEY_TTS_SLOW, false);
+                tts.setSpeechRate(isSlow ? 0.5f : 1.0f);
+
+                tts.speak(currentWord.word, TextToSpeech.QUEUE_FLUSH, null, null);
+            }
         });
+
         speakButton.setOnClickListener(v -> {
             Toast.makeText(this, "Tính năng ghi âm chưa hỗ trợ", Toast.LENGTH_SHORT).show();
         });

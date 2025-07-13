@@ -113,7 +113,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="22dp"
             android:layout_weight="1"
-            android:text="Change Volume"
+            android:text="Slow Pronunciation"
             android:textColor="#22537C"
             android:textSize="20dp"
             android:textStyle="bold" />
