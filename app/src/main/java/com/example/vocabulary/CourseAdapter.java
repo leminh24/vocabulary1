@@ -4,7 +4,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,6 +36,33 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
         holder.wordCount.setText("Words: " + course.wordCount);
         holder.imageView.setImageResource(course.imageResId); // Load ảnh
         holder.itemView.setOnClickListener(v -> listener.onCourseClick(course.id));
+        ImageView imageView = holder.imageView;
+        String name = course.name;
+
+        switch (name) {
+            case "TOEIC":
+                imageView.setImageResource(R.drawable.toeic);
+                break;
+            case "TOEFL":
+                imageView.setImageResource(R.drawable.toefl);
+                break;
+            case "SAT":
+                imageView.setImageResource(R.drawable.sat);
+                break;
+            case "IELTS":
+                imageView.setImageResource(R.drawable.ielts);
+                break;
+            case "Business English":
+                imageView.setImageResource(R.drawable.business_english);
+                break;
+            case "Basic English":
+                imageView.setImageResource(R.drawable.basic);
+                break;
+            default:
+                imageView.setImageResource(R.drawable.default_image); // fallback
+                break;
+        }
+
     }
 
     @Override
