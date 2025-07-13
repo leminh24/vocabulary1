@@ -1,11 +1,17 @@
 package com.example.vocabulary;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.*;
 
@@ -18,24 +24,29 @@ import java.util.Random;
 
 public class PracticeActivity extends AppCompatActivity {
 
-    private TextView questionText;
+    private TextView questionText, learnWord, learnMeaning, speakText;
     private EditText answerInput;
     private RadioGroup choicesGroup;
     private Button listenButton, speakButton, okButton;
 
-    private LinearLayout fillInLayout, multipleChoiceLayout, pronunciationLayout;
+    private LinearLayout fillInLayout, multipleChoiceLayout, pronunciationLayout, learnLayout;
 
     private DatabaseHelper dbHelper;
     private SQLiteDatabase db;
 
     private ArrayList<VocabularyItem> vocabList;
-    private int currentIndex = 0;
+    private ArrayList<QuestionItem> questionList;
+    private int questionIndex = 0;
 
+    private QuestionItem currentQuestion;
     private VocabularyItem currentWord;
-    private int questionType = 0; // 0: điền từ, 1: trắc nghiệm, 2: phát âm
+    private int questionType = 0;
 
     private TextToSpeech tts;
     private int topicId = -1;
+    private boolean hasLearned = false;
+    private SpeechRecognizer speechRecognizer;
+    private Intent speechIntent;
 
     private static final String PREFS_NAME = "settings_prefs";
     private static final String KEY_TTS_SLOW = "tts_slow";
@@ -47,58 +58,137 @@ public class PracticeActivity extends AppCompatActivity {
 
         // Ánh xạ giao diện
         questionText = findViewById(R.id.questionText);
+        learnWord = findViewById(R.id.learnWord);
+        learnMeaning = findViewById(R.id.learnMeaning);
         answerInput = findViewById(R.id.answerInput);
         choicesGroup = findViewById(R.id.choicesGroup);
         listenButton = findViewById(R.id.listenButton);
         speakButton = findViewById(R.id.speakButton);
         okButton = findViewById(R.id.okButton);
+        speakText = findViewById(R.id.speakText);
+
+        Button learnListenButton = findViewById(R.id.learnListenButton);
+        Button learnOkButton = findViewById(R.id.learnOkButton);
 
         fillInLayout = findViewById(R.id.fillInLayout);
         multipleChoiceLayout = findViewById(R.id.multipleChoiceLayout);
         pronunciationLayout = findViewById(R.id.pronunciationLayout);
+        learnLayout = findViewById(R.id.learnLayout);
 
-        // Nhận topic_id từ Intent
         topicId = getIntent().getIntExtra("topic_id", -1);
 
         // Khởi tạo TextToSpeech
         tts = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
                 tts.setLanguage(Locale.US);
-
-                // Lấy trạng thái switch từ SharedPreferences
                 SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
                 boolean isSlow = prefs.getBoolean(KEY_TTS_SLOW, false);
                 tts.setSpeechRate(isSlow ? 0.5f : 1.0f);
             }
         });
 
-        // Lấy dữ liệu
         dbHelper = new DatabaseHelper(this);
         db = dbHelper.getWritableDatabase();
         loadVocabulary();
-
         showNextQuestion();
 
         okButton.setOnClickListener(v -> checkAnswer());
 
-        listenButton.setOnClickListener(v -> {
-            if (currentWord != null) {
-                // Kiểm tra lại trạng thái switch mỗi lần nói
-                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-                boolean isSlow = prefs.getBoolean(KEY_TTS_SLOW, false);
-                tts.setSpeechRate(isSlow ? 0.5f : 1.0f);
+        learnOkButton.setOnClickListener(v -> {
+            hasLearned = true;
+            showQuestionLayout();
+        });
 
+        learnListenButton.setOnClickListener(v -> {
+            if (currentWord != null && tts != null) {
+                applyTtsRate(); // lấy tốc độ hiện tại từ SharedPreferences
+                tts.speak(currentWord.word, TextToSpeech.QUEUE_FLUSH, null, null);
+            }
+        });
+
+        listenButton.setOnClickListener(v -> {
+            if (currentWord != null && tts != null) {
+                applyTtsRate(); // lấy tốc độ hiện tại từ SharedPreferences
                 tts.speak(currentWord.word, TextToSpeech.QUEUE_FLUSH, null, null);
             }
         });
 
         speakButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Tính năng ghi âm chưa hỗ trợ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Giữ nút để ghi âm", Toast.LENGTH_SHORT).show();
         });
+
+        // Khởi tạo SpeechRecognizer
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        speechIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.US);
+
+        // Nhận dạng giọng nói
+        speechRecognizer.setRecognitionListener(new RecognitionListener() {
+            @Override public void onReadyForSpeech(Bundle params) {}
+            @Override public void onBeginningOfSpeech() {}
+            @Override public void onRmsChanged(float rmsdB) {}
+            @Override public void onBufferReceived(byte[] buffer) {}
+            @Override public void onEndOfSpeech() {}
+            @Override public void onError(int error) {
+                Toast.makeText(PracticeActivity.this, "Lỗi nhận giọng nói", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onResults(Bundle results) {
+                ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                if (matches != null && !matches.isEmpty()) {
+                    String spokenText = matches.get(0).trim().toLowerCase();
+                    String targetWord = currentWord.word.trim().toLowerCase();
+
+                    speakText.setText(spokenText);
+
+                    if (spokenText.equals(targetWord)) {
+                        Toast.makeText(PracticeActivity.this, "Phát âm đúng!", Toast.LENGTH_SHORT).show();
+                        ContentValues values = new ContentValues();
+                        values.put("status", 1);
+                        db.update("Vocabulary", values, "id = ?", new String[]{String.valueOf(currentWord.id)});
+                        showNextQuestion();
+                    } else {
+                        Toast.makeText(PracticeActivity.this, "Chưa đúng, bạn nói: " + spokenText, Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override public void onPartialResults(Bundle partialResults) {}
+            @Override public void onEvent(int eventType, Bundle params) {}
+        });
+
+        // Ghi âm khi giữ nút
+        speakButton.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, 1);
+                        return true;
+                    }
+                    Toast.makeText(this, "Bắt đầu nói...", Toast.LENGTH_SHORT).show();
+                    speechRecognizer.startListening(speechIntent);
+                    return true;
+
+                case MotionEvent.ACTION_UP:
+                    Toast.makeText(this, "Dừng ghi âm", Toast.LENGTH_SHORT).show();
+                    speechRecognizer.stopListening();
+                    return true;
+            }
+            return false;
+        });
+    }
+
+    private void applyTtsRate() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean isSlow = prefs.getBoolean(KEY_TTS_SLOW, false);
+        tts.setSpeechRate(isSlow ? 0.5f : 1.0f);
     }
 
     private void loadVocabulary() {
         vocabList = new ArrayList<>();
+        questionList = new ArrayList<>();
         Cursor c = db.rawQuery("SELECT * FROM Vocabulary WHERE topic_id = ?", new String[]{String.valueOf(topicId)});
         while (c.moveToNext()) {
             VocabularyItem item = new VocabularyItem();
@@ -106,25 +196,42 @@ public class PracticeActivity extends AppCompatActivity {
             item.word = c.getString(c.getColumnIndexOrThrow("word"));
             item.meaning = c.getString(c.getColumnIndexOrThrow("meaning_vi"));
             vocabList.add(item);
+
+            questionList.add(new QuestionItem(item, 0));
+            questionList.add(new QuestionItem(item, 1));
+            questionList.add(new QuestionItem(item, 2));
         }
         c.close();
-        Collections.shuffle(vocabList);
+        Collections.shuffle(questionList);
     }
 
     private void showNextQuestion() {
-        if (currentIndex >= vocabList.size()) {
+        if (questionIndex >= questionList.size()) {
             Toast.makeText(this, "Hoàn thành tất cả câu hỏi!", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        currentWord = vocabList.get(currentIndex++);
-        questionType = new Random().nextInt(3); // 0,1,2
+        currentQuestion = questionList.get(questionIndex++);
+        currentWord = currentQuestion.vocab;
+        questionType = currentQuestion.type;
+        hasLearned = false;
 
-        // Ẩn hết
         fillInLayout.setVisibility(View.GONE);
         multipleChoiceLayout.setVisibility(View.GONE);
         pronunciationLayout.setVisibility(View.GONE);
+        questionText.setVisibility(View.GONE);
+        okButton.setVisibility(View.GONE);
+
+        learnLayout.setVisibility(View.VISIBLE);
+        learnWord.setText(currentWord.word);
+        learnMeaning.setText(currentWord.meaning);
+    }
+
+    private void showQuestionLayout() {
+        learnLayout.setVisibility(View.GONE);
+        questionText.setVisibility(View.VISIBLE);
+        okButton.setVisibility(View.VISIBLE);
 
         switch (questionType) {
             case 0:
@@ -140,6 +247,7 @@ public class PracticeActivity extends AppCompatActivity {
             case 2:
                 pronunciationLayout.setVisibility(View.VISIBLE);
                 questionText.setText("Phát âm từ: " + currentWord.word);
+                speakText.setText("");
                 break;
         }
     }
@@ -180,7 +288,7 @@ public class PracticeActivity extends AppCompatActivity {
                 }
                 break;
             case 2:
-                correct = true;
+                correct = true; // phần ghi âm đã xử lý riêng
                 break;
         }
 
@@ -200,6 +308,9 @@ public class PracticeActivity extends AppCompatActivity {
             tts.stop();
             tts.shutdown();
         }
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+        }
         super.onDestroy();
     }
 
@@ -207,5 +318,15 @@ public class PracticeActivity extends AppCompatActivity {
         int id;
         String word;
         String meaning;
+    }
+
+    static class QuestionItem {
+        VocabularyItem vocab;
+        int type;
+
+        public QuestionItem(VocabularyItem vocab, int type) {
+            this.vocab = vocab;
+            this.type = type;
+        }
     }
 }
