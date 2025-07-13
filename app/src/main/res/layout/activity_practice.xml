@@ -18,6 +18,48 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
+        <!-- Layout học lướt qua từ -->
+        <LinearLayout
+            android:id="@+id/learnLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/learnWord"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Word"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/learnMeaning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Meaning"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/learnListenButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nghe phát âm" />
+
+            <Button
+                android:id="@+id/learnOkButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tôi đã học từ này"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#22537C"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
 
         <!-- Layout dạng điền từ -->
         <LinearLayout
@@ -64,6 +106,14 @@
             android:visibility="gone"
             android:layout_marginTop="16dp"
             android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/speakText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Speak"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
 
             <Button
                 android:id="@+id/listenButton"
