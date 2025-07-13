@@ -15,6 +15,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        // Tạo bảng
         db.execSQL("CREATE TABLE Course (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT, " +
@@ -37,9 +38,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "sound TEXT, " +
                 "status INTEGER DEFAULT 0)");
 
-        String[] courseNames = {"TOEIC","TOEFL", "SAT", "IELTS", "Business English", "Basic English"};
-        int courseId = 1;
+        db.execSQL("CREATE TABLE Detail_Vocabulary (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "vocab_id INTEGER, " +
+                "synonyms TEXT, " +
+                "FOREIGN KEY(vocab_id) REFERENCES Vocabulary(id))");
 
+        // Thêm khóa học
+        String[] courseNames = {"TOEIC", "TOEFL", "SAT", "IELTS", "Business English", "Basic English"};
         ContentValues course = new ContentValues();
         for (String courseName : courseNames) {
             course.clear();
@@ -47,8 +53,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             course.put("word_count", 0);
             course.put("progress", 0);
             db.insert("Course", null, course);
-
-            courseId++;
         }
 
         // Thêm 10 chủ đề TOEIC
@@ -65,7 +69,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.insert("Topic", null, topicValues);
         }
 
-        // Dữ liệu 50 từ vựng (10 từ cho mỗi chủ đề đầu tiên)
+        // Dữ liệu từ vựng (50 từ - 5 chủ đề đầu)
         String[][] words = {
                 // Office
                 {"stationery", "materials for writing", "She bought new stationery.", "đồ dùng văn phòng", "stationery.mp3"},
@@ -124,12 +128,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 {"balance sheet", "financial summary", "Check the balance sheet.", "bảng cân đối kế toán", "balance_sheet.mp3"},
         };
 
-        // Gán từ vào topic_id = 1 → 5
+        String[] synonymsList = {
+                "writing materials, office supplies",
+                "copy machine, duplicator",
+                "printing device",
+                "worktable, workspace",
+                "note, reminder",
+                "cubicle office, booth",
+                "file cabinet, document storage",
+                "dry-erase board",
+                "meeting room, boardroom",
+                "equipment, resources",
+                "schedule, plan",
+                "record, log",
+                "moderator, head",
+                "attendee, member",
+                "timetable, calendar",
+                "suggestion, offer",
+                "ballot, decision",
+                "proposal, suggestion",
+                "agreement, unity",
+                "close, end",
+                "travel plan, schedule",
+                "boarding ticket",
+                "baggage, bags",
+                "travel ID",
+                "travel permit",
+                "takeoff, leaving",
+                "arrival time, landing",
+                "booking, appointment",
+                "immigration, border check",
+                "gift, keepsake"
+        };
+
+        // Thêm từ vựng và đồng nghĩa
         ContentValues wordValues = new ContentValues();
+        ContentValues detailValues = new ContentValues();
         int wordIndex = 0;
         for (int topicId = 1; topicId <= 5; topicId++) {
             for (int i = 0; i < 10; i++) {
-                String[] w = words[wordIndex++];
+                String[] w = words[wordIndex];
                 wordValues.clear();
                 wordValues.put("topic_id", topicId);
                 wordValues.put("word", w[0]);
@@ -137,7 +175,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 wordValues.put("example", w[2]);
                 wordValues.put("meaning_vi", w[3]);
                 wordValues.put("sound", w[4]);
-                db.insert("Vocabulary", null, wordValues);
+
+                long vocabId = db.insert("Vocabulary", null, wordValues);
+
+                if (wordIndex < 30) {
+                    detailValues.clear();
+                    detailValues.put("vocab_id", vocabId);
+                    detailValues.put("synonyms", synonymsList[wordIndex]);
+                    db.insert("Detail_Vocabulary", null, detailValues);
+                }
+
+                wordIndex++;
             }
         }
 
@@ -147,6 +195,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS Detail_Vocabulary");
         db.execSQL("DROP TABLE IF EXISTS Vocabulary");
         db.execSQL("DROP TABLE IF EXISTS Topic");
         db.execSQL("DROP TABLE IF EXISTS Course");
